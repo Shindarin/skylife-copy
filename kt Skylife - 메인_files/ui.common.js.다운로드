@@ -1,0 +1,2278 @@
+/* eslint-disable camelcase */
+/* eslint-disable no-unused-vars */
+/* eslint-disable eqeqeq */
+/* eslint-disable no-redeclare */
+/* eslint-disable no-undef */
+/* eslint-disable no-unused-expressions */
+/* eslint-disable one-var */
+/* eslint-disable object-shorthand */
+/* eslint-disable no-extra-boolean-cast */
+/* eslint-disable spaced-comment */
+/* eslint-disable no-shadow-restricted-names */
+/* eslint-disable no-var */
+/* eslint-disable prettier/prettier */
+
+; (function ($, win, doc, undefined) {
+  $plugins.common = {
+
+    jquery: $,
+
+    init: function (v) {
+
+      // nice select
+      $plugins.common.selectric();
+      // $plugins.common.breadcrumb(); // breadcrumb
+      // $plugins.common.noticeTicker(); // footer 공지사항 티커
+      // $plugins.common.termsList(); // footer 이용약관 검색
+      // $plugins.common.ktfamilyList(); // footer KT Family
+      // $plugins.common.simpleJoin(); // footer 빠른가입상담
+      // $plugins.common.stickyBanner(); // footer stickyBanner
+      $plugins.common.createUiInputClear(); // input clear button
+      $plugins.common.subContentsHeight(); // subContents height
+      $plugins.common.openLayerPopup(); // open Layer Popup
+      $plugins.common.mCustomScrollBar(); // Custom ScrollBar
+      // $plugins.common.stepBoxPadding(); // step box padding
+      // $plugins.common.accordion(); // accordion
+      $plugins.common.showDetail(); // 서비스상품 detail, shortly
+      $plugins.common.tblHover(); // table col hover
+
+      // 추가
+      $plugins.common.faqWrapList(); // faq 리스트
+      $plugins.common.selfStepList(); // 자가진단 테스트
+      $plugins.common.slideTab(); // 슬라이드 탭
+      $plugins.common.kidsSlider(); // 키즈케어 슬라이드
+      $plugins.common.tableList(); // 테이블 faq 탭
+      // 2021-09-30 추가
+      // $plugins.common.headerSearch(); // header 검색
+      $plugins.common.agreeTab(); // 이용약관 동의 탭
+      $plugins.common.attentionTabBtn(); // 관심상품 선택 탭
+      // $plugins.common.pairingWrapTab(); // 팝업 채널편성표 탭
+      // $plugins.common.pairingWrapSlider(); // 편성표 슬라이드
+      // $plugins.common.programDrag(); // 실시간 편성표 드래그
+
+      $('.ui-pay-channel-viewall').on('click', function (e) {
+        e.preventDefault();
+        if (!$(this).hasClass('destory')) {
+          $(this).addClass('destory');
+          $(this).find('span').text('닫기');
+          $('.pay-channel-tab').addClass('destory');
+          $('.pay-channel-tab').prepend('<div class="dimm"></div>')
+
+          var save_id = 'payChannelTabSwiper',
+            save_n = payChannelTabSwiper.activeIndex;
+          sessionStorage.setItem($plugins.href, JSON.stringify({ 'moveId': save_id, 'swipeIndex': save_n }));
+
+          payChannelTabSwiper.destroy();
+
+        } else {
+          $(this).removeClass('destory');
+          $(this).find('span').text('전체보기');
+          $('.pay-channel-tab').removeClass('destory');
+          $('.pay-channel-tab').find('.dimm').remove();
+          $plugins.common.carouselAct();
+          var pageSs = JSON.parse(sessionStorage.getItem($plugins.href));
+          $plugins.common.carouselTo({ id: pageSs.moveId, current: pageSs.swipeIndex });
+        }
+      });
+
+    },
+
+    gnb: function (opt) {
+
+      var $this = $(this),
+        $dimmed = $('#dimmed'),
+        $wrap = $('#wrap'),
+        $header = $('#header'),
+        $gnb = $('#gnb'),
+        $gnbDep1 = $gnb.find('>ul>li>a'),
+        $subNav = $gnb.find('.sub-nav'),
+        $depSubListWrap = $gnb.find('.sub-nav-wrap'),
+        $depSubListItem = $depSubListWrap.find('.dep3'),
+        timeout;
+
+      $gnbDep1.on('mouseenter focus', function () {
+        var $this = $(this);
+
+        if (timeout != null) {
+          clearTimeout(timeout);
+        }
+        timeout = setTimeout(function () {
+          if (!$this.hasClass('directshop')) {
+            $gnbDep1.removeClass('active');
+            $this.addClass('active');
+            $header.addClass('gnb-open');
+            $subNav.stop().slideUp(200);
+            $this.next().stop().slideDown(300);
+            dimShow();
+          }
+        }, 200);
+      });
+      $gnb.on('mouseleave', function () {
+        $gnbDep1.removeClass('active');
+        $header.removeClass('gnb-open');
+        $subNav.stop().slideUp(200);
+        dimRemove();
+        if (timeout != null) {
+          clearTimeout(timeout);
+          timeout = null;
+        }
+      });
+
+      $gnb.find('li').last().find('a').focusout(function () {
+        $(this).mouseleave();
+      });
+      $gnb.find('>ul>li').eq(1).find('a.dep1').keydown(function (e) {
+        if (e.keyCode == "9" && e.shiftKey) {
+          $(this).mouseleave();
+        }
+      });
+
+      $(doc).on('click', '#dimmed', function () {
+        dimRemove();
+        $gnb.mouseleave();
+      });
+
+      if ($depSubListItem.find('.dep4').length) {
+        $depSubListItem.find('.dep4').before('<button class="btn-folding"><span class="hide">닫기</span></button>').parent('li').addClass('open');
+      }
+
+      $depSubListWrap.on('click', '.btn-folding', function (e) {
+        e.preventDefault();
+        var $this = $(this),
+          $dep4 = $this.next('.dep4'),
+          $depSubItem = $depSubListWrap.find('li');
+
+        if ($this.parent('li').hasClass('open')) {
+          $dep4.slideUp();
+          $this.parent('li').removeClass('open');
+          $this.find('span.hide').text('펼치기');
+        } else {
+          $dep4.slideDown();
+          $this.parent('li').addClass('open');
+          $this.find('span.hide').text('닫기');
+        }
+
+        // if ( !$this.parent('li').hasClass('active') ){
+        //     if ( $this.prev('.dep2').length ){
+        //         $depSubItem.removeClass('active');
+        //     }
+        //     $this.find('span').text('닫기');
+        //     $this.parent('li').addClass('active');
+        // } else {
+        //     $this.find('span').text('펼치기');
+        //     $this.parent('li').removeClass('active');
+        //     $this.siblings('ul').find('li').removeClass('active');
+        // }
+      });
+
+      function dimShow() {
+        if (!$('#dimmed').length) {
+          $wrap.append('<div id="dimmed"></div>');
+        }
+      }
+
+      function dimRemove() {
+        $('#dimmed').remove();
+      }
+
+    },
+
+    // breadcrumb
+    breadcrumb: function () {
+      var $bc = $('.breadcrumb'),
+        $bcLast = $bc.find('ol > li').eq('-1'),
+        $bcLastA = $bcLast.find('>a'),
+        $bcLastS = $bcLast.find('.siblings'),
+        timeout;
+
+      if ($bc.length) {
+        if ($bcLastA.next().length) {
+          $bcLastA.addClass('arrow-d');
+        }
+
+        $bc.on('mouseenter focus', '.arrow-d', function () {
+          if (timeout != null) {
+            clearTimeout(timeout);
+          }
+          timeout = setTimeout(function () {
+            console.log($(this))
+            $bcLastA.addClass('open');
+            $bcLastS.stop().slideDown(300);
+          }, 200);
+        });
+        $bcLast.on('mouseleave', function () {
+          $bcLastA.removeClass('open');
+          $bcLastS.stop().slideUp(200);
+          if (timeout != null) {
+            clearTimeout(timeout);
+            timeout = null;
+          }
+        });
+      }
+
+    },
+
+    //carousel
+    carouselAct: function (opt) {
+      var cariuselID,
+        $wrap = opt === undefined ? $('body') : opt.wrap === undefined ? $('body') : opt.wrap;
+
+      // if ($plugins.caruselCount === 0) {
+      //     return false;
+      // }
+
+      $plugins.caruselCount = $wrap.find('.swiper-container').length;
+
+      $wrap.find('.swiper-container').each(function () {
+        cariuselID = $(this).attr('id');
+
+        $plugins.common.carouselFn(cariuselID);
+
+      });
+    },
+
+    carouselCountFn: function () {
+      $plugins.caruselCount = $plugins.caruselCount - 1;
+    },
+
+    carouselFn: function (v) {
+
+      var cariuselID = v,
+        $swiper = $('#' + cariuselID),
+        $wrap = $swiper.closest('.base-carousel'),
+        $swiperWrap = $swiper.find('.swiper-wrapper'),
+        $pagin = $swiper.find('.swiper-pagination'),
+        $prev = $swiper.find('.swiper-button-prev'),
+        $next = $swiper.find('.swiper-button-next'),
+        $pause = $swiper.find('.swiper-button-pause'),
+        $play = $swiper.find('.swiper-button-play'),
+        mainVisualSwiper,
+        _length,
+        space = 0,
+        slidesPerView = 'auto',
+        modeM,
+        inpid,
+        $pg2,
+        $pg2c,
+        $pg2t;
+
+      if (!!$swiper.closest('.main-visual-carousel').length) {
+
+        console.log('========================main-visual-carousel')
+        $wrap = $swiper.closest('.main-visual-carousel');
+        $swiperWrap = $swiper.find('.swiper-wrapper');
+        $swiperSlide = $swiper.find('.swiper-slide');
+        $pagin = $wrap.find('.swiper-paginations');
+        $prev = $wrap.find('.swiper-button-prev');
+        $next = $wrap.find('.swiper-button-next');
+        $pause = $swiper.find('.swiper-button-pause');
+        $play = $swiper.find('.swiper-button-play');
+
+        if (!$swiper.data('load')) {
+          type_breakpoint = true;
+
+          // var pagination = $swiperSlide.data('title');
+          var paginationData = $swiperSlide.map(function () {
+            return $(this).data("title");
+          }).get();
+
+          mainVisualSwiper = new Swiper($swiper, {
+            effect: 'fade',
+            fadeEffect: {
+              crossFade: true
+            },
+            autoplay: {
+              delay: 5000,
+              disableOnInteraction: false,
+            },
+            loop: true,
+            slidesPerView: '1',
+            spaceBetween: 0,
+            pagination: {
+              el: $pagin,
+              clickable: true,
+              renderBullet: function (index, className) {
+                return '<span class="' + className + '">' + (paginationData[index]) + '</span>';
+              },
+            },
+            navigation: {
+              nextEl: $next,
+              prevEl: $prev,
+            },
+            on: {
+              init: function () {
+                $swiper.data('load', true);
+                $swiper.removeClass('is-destroy');
+                $plugins.common.carouselCountFn();
+
+                $swiper.attr('aria-label', 'carousel');
+                $swiperWrap.attr('role', 'list');
+                $swiperWrap.find('.swiper-slide').attr('role', 'listitem');
+              },
+              transitionEnd: function () {
+                $swiperWrap.find('.swiper-slide').removeClass('chg-end');
+                $swiperWrap.find('.swiper-slide-active').addClass('chg-end');
+
+              }
+            }
+          });
+
+          $pause.on('click', function (e) {
+            $wrap.addClass('autoplay-pause');
+            mainVisualSwiper.autoplay.stop();
+            return false;
+          });
+          $play.on('click', function (e) {
+            $wrap.removeClass('autoplay-pause');
+            mainVisualSwiper.autoplay.start();
+            return false;
+          });
+        }
+
+      } else if (!!$swiper.closest('.main-recoproduct-carousel').length) {
+
+        $wrap = $swiper.closest('.main-recoproduct-carousel');
+        $swiperWrap = $swiper.find('.swiper-wrapper');
+        $swiperSlide = $swiper.find('.swiper-slide');
+        $pagin = $wrap.find('.swiper-paginations');
+        $prev = $wrap.find('.swiper-button-prev');
+        $next = $wrap.find('.swiper-button-next');
+
+        mainRecoproductSwiper = new Swiper($swiper, {
+          // autoplay: {
+          //     delay: 5000,
+          //     disableOnInteraction: false,
+          // },
+          watchOverflow: true,
+          loop: false,
+          centeredSlides: false,
+          slidesPerView: '1',
+          spaceBetween: 20,
+          pagination: {
+            el: $pagin,
+            clickable: true
+          },
+          navigation: {
+            nextEl: $next,
+            prevEl: $prev,
+          },
+          on: {
+            init: function () {
+              $swiper.data('load', true);
+            },
+            transitionEnd: function () {
+              $swiperWrap.find('.swiper-slide').removeClass('chg-end');
+              $swiperWrap.find('.swiper-slide-active').addClass('chg-end');
+            }
+          }
+        });
+
+      } else if (!!$swiper.closest('.main-event-carousel').length) {
+
+        $wrap = $swiper.closest('.main-event-carousel');
+        $swiperWrap = $swiper.find('.swiper-wrapper');
+        $swiperSlide = $swiper.find('.swiper-slide');
+        $pagin = $wrap.find('.swiper-paginations');
+        $prev = $wrap.find('.swiper-button-prev');
+        $next = $wrap.find('.swiper-button-next');
+
+        mainEventSwiper = new Swiper($swiper, {
+          // zoom: true,
+          watchOverflow: true,
+          autoplay: {
+            delay: 5000,
+            disableOnInteraction: false,
+          },
+          loop: false,
+          centeredSlides: false,
+          slidesPerView: '1',
+          spaceBetween: 20,
+          pagination: {
+            el: $pagin,
+            clickable: true
+          },
+          navigation: {
+            nextEl: $next,
+            prevEl: $prev,
+          },
+          on: {
+            init: function () {
+              $swiper.data('load', true);
+            },
+            transitionEnd: function () {
+              $swiperWrap.find('.swiper-slide').removeClass('chg-end');
+              $swiperWrap.find('.swiper-slide-active').addClass('chg-end');
+
+              if (cariuselID == 'mainEventSwiper') {
+                var mainEventData = [
+                  {
+                    dt: "보호종료청소년<br>SOS 장학금 지원 사업",
+                    dd: "2021.08.06 ~ 11.05"
+                  },
+                ]
+                $('#mainEventData dt').html(mainEventData[this.realIndex].dt);
+                $('#mainEventData dd').html(mainEventData[this.realIndex].dd);
+              }
+            }
+          }
+        });
+
+      } else if (!!$swiper.closest('.pop-main-carousel').length) {
+
+        $wrap = $swiper.closest('.pop-main-carousel');
+        $swiperWrap = $swiper.find('.swiper-wrapper');
+        $swiperSlide = $swiper.find('.swiper-slide');
+        $pagin = $wrap.find('.swiper-paginations');
+        $prev = $wrap.find('.swiper-button-prev');
+        $next = $wrap.find('.swiper-button-next');
+
+        popMainSwiper = new Swiper($swiper, {
+          watchOverflow: true,
+          autoplay: {
+            delay: 5000,
+            disableOnInteraction: false,
+          },
+          loop: false,
+          centeredSlides: false,
+          slidesPerView: '1',
+          spaceBetween: 20,
+          pagination: {
+            el: $pagin,
+            clickable: true
+          },
+          navigation: {
+            nextEl: $next,
+            prevEl: $prev,
+          },
+          on: {
+            init: function () {
+              $swiper.data('load', true);
+            },
+            transitionEnd: function () {
+              $swiperWrap.find('.swiper-slide').removeClass('chg-end');
+              $swiperWrap.find('.swiper-slide-active').addClass('chg-end');
+
+            }
+          }
+        });
+
+      } else if (!!$swiper.closest('.vis-se01-carousel').length) {
+
+        $wrap = $swiper.closest('.vis-se01-carousel');
+        $swiperWrap = $swiper.find('.swiper-wrapper');
+        $swiperSlide = $swiper.find('.swiper-slide');
+        $pagin = $wrap.find('.swiper-paginations');
+        $prev = $wrap.find('.swiper-button-prev');
+        $next = $wrap.find('.swiper-button-next');
+
+        var options = {};
+        if ($swiperSlide.length <= 1) {
+          $('.vis-se01-carousel .swiper-wrapper').addClass("disabled");
+          $('.vis-se01-carousel .swiper-control').addClass("disabled");
+        } else {
+          options = {
+            effect: 'fade',
+            fadeEffect: {
+              crossFade: true
+            },
+            autoplay: {
+              delay: 5000,
+              disableOnInteraction: false,
+            },
+            watchOverflow: true,
+            loop: true,
+            centeredSlides: false,
+            slidesPerView: '1',
+            spaceBetween: 20,
+            pagination: {
+              el: $pagin,
+              clickable: true
+            },
+            navigation: {
+              nextEl: $next,
+              prevEl: $prev,
+            },
+            on: {
+              init: function () {
+                $swiper.data('load', true);
+              },
+              transitionEnd: function () {
+                $swiperWrap.find('.swiper-slide').removeClass('chg-end');
+                $swiperWrap.find('.swiper-slide-active').addClass('chg-end');
+
+              }
+
+            }
+          }
+          visSe01Swiper = new Swiper($swiper, options);
+        }
+
+
+      } else if (!!$swiper.closest('.box-carousel').length) {
+
+        $wrap = $swiper.closest('.box-carousel');
+        $swiperWrap = $swiper.find('.swiper-wrapper');
+        $swiperSlide = $swiper.find('.swiper-slide');
+        $pagin = $wrap.find('.swiper-paginations');
+        $prev = $wrap.find('.swiper-button-prev');
+        $next = $wrap.find('.swiper-button-next');
+
+        boxSwiper = new Swiper($swiper, {
+          autoplay: {
+            delay: 5000,
+            disableOnInteraction: false,
+          },
+          loop: true,
+          centeredSlides: false,
+          slidesPerView: '1',
+          spaceBetween: 20,
+          pagination: {
+            el: $pagin,
+            clickable: true
+          },
+          navigation: {
+            nextEl: $next,
+            prevEl: $prev,
+          },
+          init: false,
+          on: {
+            init: function () {
+              $swiper.data('load', true);
+            },
+            transitionEnd: function () {
+              $swiperWrap.find('.swiper-slide').removeClass('chg-end');
+              $swiperWrap.find('.swiper-slide-active').addClass('chg-end');
+              // tvapp > 넷플릭스
+              if (cariuselID == 'howtouseNetflixSwiper') {
+                var netflexStepData = [
+                  {
+                    step: 'STEP 01',
+                    dt: '홈화면',
+                    dd: "- 넷플릭스 메뉴 &gt; 바로가기"
+                  },
+                  {
+                    step: 'STEP 02',
+                    dt: '넷플릭스 App 실행',
+                    dd: "- 넷플릭스 처음 이용하는 고객은 '시작하기'<br>- 넷플릭스 이미 이용중인 고객은 '로그인'"
+                  },
+                  {
+                    step: 'STEP 03',
+                    dt: '신규 계정 등록',
+                    dd: "- 넷플릭스 계정으로 이용할 이메일 주소 입력"
+                  },
+                  {
+                    step: 'STEP 04',
+                    dt: '계정 비밀번호 등록',
+                    dd: "- 넷플릭스 계정의 비밀번호 입력"
+                  },
+                  {
+                    step: 'STEP 05',
+                    dt: '넷플릭스 약관 동의',
+                    dd: "- 동의 체크박스 선택 &gt; 다음"
+                  },
+                  {
+                    step: 'STEP 06',
+                    dt: '결제정보 제공',
+                    dd: "- '멤버십 변경' 에서 3개 멤버십 상품 중 택1 가능<br>- '멤버십 시작' 선택"
+                  },
+                  {
+                    step: 'STEP 07',
+                    dt: '가입 완료',
+                    dd: "- 가입정보 이메일 발송"
+                  }
+                ]
+                // console.log('realIndex: '+this.realIndex)
+                // console.log(netflexStepData[this.realIndex].step)
+                $('#netflixStepInfo .step').html(netflexStepData[this.realIndex].step);
+                $('#netflixStepInfo dt').html(netflexStepData[this.realIndex].dt);
+                $('#netflixStepInfo dd').html(netflexStepData[this.realIndex].dd);
+                // if ( realIndex == 0) {
+                //     // $('#netflixStepInfo .step').data("dt");
+                // }
+              } else if (cariuselID == 'routerAttentionSwiper') {
+                var routerAttentionData = [
+                  {
+                    step: 'STEP 01',
+                    dt: 'sky WiFi와<br>모뎀/공유기의 형태 확인'
+                  },
+                  {
+                    step: 'STEP 02',
+                    dt: '장비 아래 면에 붙어 있는 라벨 참고하여<br>WiFi 아이디와 비밀번호 확인',
+                    dd: '- 제품마다 무선랜명과 비밀번호는 다릅니다.<br>- 2.4GHz 무선랜명은 skyLife_WiFi_2G_yyyy로 표시됩니다.<br>- 보안을 위해 비밀번호는 변경하여 사용할 것을 권합니다.'
+                  },
+                  {
+                    step: 'STEP 03',
+                    dt: 'sky WiFi 및<br>모뎀과 공유기의 연결 상태를 확인'
+                  },
+                  {
+                    step: 'STEP 04',
+                    dt: 'sky WiFi 재부팅,<br>일반 모뎀과 공유기는 전원 다시 연결'
+                  }
+                ]
+                $('#routerAttentionStepInfo .step').html(routerAttentionData[this.realIndex].step);
+                $('#routerAttentionStepInfo dt').html(routerAttentionData[this.realIndex].dt);
+                $('#routerAttentionStepInfo dd').html(routerAttentionData[this.realIndex].dd);
+              } else if (cariuselID == 'routerGigaAttentionSwiper') {
+                var routerGigaAttentionData = [
+                  {
+                    step: 'STEP 01',
+                    dt: 'sky GiGA WiFi와<br>모뎀/공유기의 형태 확인'
+                  },
+                  {
+                    step: 'STEP 02',
+                    dt: '장비 아래 면에 붙어 있는 라벨 참고하여<br>WiFi 아이디와 비밀번호 확인',
+                    dd: '- 제품마다 무선랜명과 비밀번호는 다릅니다.<br>- 2.4GHz 무선랜명은 skyLife_WiFi_2G_yyyy로 표시됩니다.<br>- 보안을 위해 비밀번호는 변경하여 사용할 것을 권합니다.'
+                  },
+                  {
+                    step: 'STEP 03',
+                    dt: 'sky GiGA WiFi 및<br>모뎀과 공유기의 연결 상태를 확인'
+                  },
+                  {
+                    step: 'STEP 04',
+                    dt: 'sky GiGA WiFi 재부팅,<br>일반 모뎀과 공유기는 전원 다시 연결'
+                  }
+                ]
+                $('#routerGigaAttentionStepInfo .step').html(routerGigaAttentionData[this.realIndex].step);
+                $('#routerGigaAttentionStepInfo dt').html(routerGigaAttentionData[this.realIndex].dt);
+                $('#routerGigaAttentionStepInfo dd').html(routerGigaAttentionData[this.realIndex].dd);
+              } else if (cariuselID == 'howToMoviechoiceOrderSwiper') {
+                var moviechoiceData = [
+                  {
+                    step: 'STEP 01',
+                    dt: '리모컨 사용방법',
+                    dd: '방향버튼과 확인버튼을 이용하시면<br>리모컨 주문이 쉬워집니다.'
+                  },
+                  {
+                    step: 'STEP 02',
+                    dt: '무비초이스 채널 선택',
+                    dd: '편성표 내 상하좌우 방향버튼을 통해<br>보고 싶은 영화가 있는 무비초이스<br>채널을 선택한 후, OK 버튼을 눌러<br>이동합니다.'
+                  },
+                  {
+                    step: 'STEP 03',
+                    dt: '영화 선택',
+                    dd: '무비초이스 채널로 이동하여<br>보고 싶은 영화 정보를 확인한 후,<br>해당 영화를 예약 / 구매합니다.'
+                  },
+                  {
+                    step: 'STEP 04',
+                    dt: '영화 구매(비밀번호 입력)',
+                    dd: '비밀번호 입력창에 비밀번호를 입력합니다.'
+                  },
+                  {
+                    step: 'STEP 05',
+                    dt: '예약 확인 및 구매 완료',
+                    dd: '‘결제가 완료되었습니다’ 문구가 나오면<br>확인 버튼을 누른 후 예약 시간에 맞춰<br>해당 영화를 시청합니다.'
+                  }
+                ]
+                $('#moviechoiceStepInfo .step').html(moviechoiceData[this.realIndex].step);
+                $('#moviechoiceStepInfo dt').html(moviechoiceData[this.realIndex].dt);
+                $('#moviechoiceStepInfo dd').html(moviechoiceData[this.realIndex].dd);
+              } else if (cariuselID == 'howToMoviechoiceOrder2Swiper') {
+                var moviechoice2Data = [
+                  {
+                    step: 'STEP 01',
+                    dt: '리모컨 사용방법',
+                    dd: '방향버튼과 확인버튼을 이용하시면<br>리모컨 주문이 쉬워집니다.'
+                  },
+                  {
+                    step: 'STEP 02',
+                    dt: '무비초이스 화면 접속',
+                    dd: '리모컨의 <b class="c-red">스카이초이스버튼</b>을<br>누르면 무비초이스 화면이 나타납니다.'
+                  },
+                  {
+                    step: 'STEP 03',
+                    dt: '보고싶은 영화 선택',
+                    dd: '상하좌우(▲/▼/◀/▶) 방향버튼으로<br>무비초이스 채널을 이동하여<br>보고 싶은 영화와 방영시간을 지정한 후,<br>선택버튼 <span class="icon-remotecontrol-ok"><span class="hide">OK</span></span> 을 눌러 예약합니다.'
+                  },
+                  {
+                    step: 'STEP 04',
+                    dt: '보고싶은 영화<br>정보 확인 및 구매',
+                    dd: '지정한 영화의 프로그램정보 화면이 나오면<br>선택버튼 <span class="icon-remotecontrol-ok"><span class="hide">OK</span></span> 을 눌러 예약(구매)합니다.'
+                  },
+                  {
+                    step: 'STEP 05',
+                    dt: '비밀번호 입력',
+                    dd: '비밀번호를 설정한 경우에는<br>비밀번호 입력창이 나타나며,<br>비밀번호를 입력한 후<br>선택버튼 <span class="icon-remotecontrol-ok"><span class="hide">OK</span></span> 을 눌러 예약합니다.'
+                  },
+                  {
+                    step: 'STEP 06',
+                    dt: '예약 확인 및 구매 완료',
+                    dd: '‘주문해 주셔서 감사합니다.<br>잠시만 기다려 주십시오’ 메시지가 나오면<br>다시 한번 선택버튼 <span class="icon-remotecontrol-ok"><span class="hide">OK</span></span> 을 눌러<br>예약을 확인합니다.'
+                  }
+                ]
+                $('#moviechoice2StepInfo .step').html(moviechoice2Data[this.realIndex].step);
+                $('#moviechoice2StepInfo dt').html(moviechoice2Data[this.realIndex].dt);
+                $('#moviechoice2StepInfo dd').html(moviechoice2Data[this.realIndex].dd);
+              }
+            }
+          }
+        });
+
+        if (cariuselID == 'howtouseNetflixSwiper' || cariuselID == 'routerAttentionSwiper' || cariuselID == 'routerGigaAttentionSwiper' || cariuselID == 'evilSwDetailSwiper' || cariuselID == 'howToMoviechoiceOrderSwiper' || cariuselID == 'howToMoviechoiceOrder2Swiper' || cariuselID == 'howToMoviechoiceOrder3Swiper') { // tvapp > 넷플릭스, 와이파이 알려드립니다., 기가 와이파이 알려드립니다.
+          boxSwiper.params.autoplay = false;
+          boxSwiper.params.loop = false;
+          boxSwiper.init();
+        } else if (cariuselID == 'howToUseEvilSwSwiper') {
+          boxSwiper.params.autoplay = false;
+          boxSwiper.params.loop = false;
+          boxSwiper.params.slidesPerView = 2;
+          boxSwiper.init();
+        } else {
+          boxSwiper.init();
+        }
+
+      } else if (!!$swiper.closest('.box2v-carousel').length) {
+
+        $wrap = $swiper.closest('.box2v-carousel');
+        $swiperWrap = $swiper.find('.swiper-wrapper');
+        $swiperSlide = $swiper.find('.swiper-slide');
+        $pagin = $wrap.find('.swiper-paginations');
+        $prev = $wrap.find('.swiper-button-prev');
+        $next = $wrap.find('.swiper-button-next');
+
+        box2vSwiper = new Swiper($swiper, {
+          autoplay: {
+            delay: 5000,
+            disableOnInteraction: false,
+          },
+          direction: "vertical",
+          loop: true,
+          centeredSlides: false,
+          slidesPerView: '1',
+          spaceBetween: 20,
+          pagination: {
+            el: $pagin,
+            clickable: true
+          },
+          on: {
+            init: function () {
+              $swiper.data('load', true);
+            },
+            transitionEnd: function () {
+              $swiperWrap.find('.swiper-slide').removeClass('chg-end');
+              $swiperWrap.find('.swiper-slide-active').addClass('chg-end');
+            }
+          }
+        });
+
+      } else if (!!$swiper.closest('.box2h-carousel').length) {
+
+        $wrap = $swiper.closest('.box2h-carousel');
+        $swiperWrap = $swiper.find('.swiper-wrapper');
+        $swiperSlide = $swiper.find('.swiper-slide');
+        $pagin = $wrap.find('.swiper-paginations');
+        $prev = $wrap.find('.swiper-button-prev');
+        $next = $wrap.find('.swiper-button-next');
+
+        box2hSwiper = new Swiper($swiper, {
+          autoplay: {
+            delay: 5000,
+            disableOnInteraction: false,
+          },
+          loop: true,
+          centeredSlides: false,
+          slidesPerView: '1',
+          spaceBetween: 20,
+          pagination: {
+            el: $pagin,
+            clickable: true
+          },
+          on: {
+            init: function () {
+              $swiper.data('load', true);
+            },
+            transitionEnd: function () {
+              $swiperWrap.find('.swiper-slide').removeClass('chg-end');
+              $swiperWrap.find('.swiper-slide-active').addClass('chg-end');
+            }
+          }
+        });
+
+      } else if (!!$swiper.closest('.vod-carousel').length) {
+
+        $wrap = $swiper.closest('.vod-carousel');
+        $swiperWrap = $swiper.find('.swiper-wrapper');
+        $swiperSlide = $swiper.find('.swiper-slide');
+        $pagin = $wrap.find('.swiper-paginations');
+        $prev = $wrap.find('.swiper-button-prev');
+        $next = $wrap.find('.swiper-button-next');
+
+        vodSwiper = new Swiper($swiper, {
+          // autoplay: {
+          //     delay: 5000,
+          //     disableOnInteraction: false,
+          // },
+          loop: true,
+          centeredSlides: false,
+          // added by dh
+          resistance: false,
+          slidesPerView: '5',
+          spaceBetween: 20,
+          // pagination: {
+          //     el: $pagin,
+          //     clickable: true
+          // },
+          navigation: {
+            nextEl: $next,
+            prevEl: $prev,
+          },
+          on: {
+            init: function () {
+              $swiper.data('load', true);
+            },
+            transitionEnd: function () {
+              $swiperWrap.find('.swiper-slide').removeClass('chg-end');
+              $swiperWrap.find('.swiper-slide-active').addClass('chg-end');
+
+            }
+          }
+        });
+
+      } else if (!!$swiper.closest('.vod-popular-carousel').length) {
+
+        $wrap = $swiper.closest('.vod-popular-carousel');
+        $swiperWrap = $swiper.find('.swiper-wrapper');
+        $swiperSlide = $swiper.find('.swiper-slide');
+        $pagin = $wrap.find('.swiper-paginations');
+        $prev = $wrap.find('.swiper-button-prev');
+        $next = $wrap.find('.swiper-button-next');
+        $slideLength = $swiperSlide.length;
+
+        vodPopularNewSwiper = new Swiper($swiper, {
+          // autoplay: {
+          //     delay: 5000,
+          //     disableOnInteraction: false,
+          // },
+          loop: false,
+          watchSlidesVisibility: true,
+          centeredSlides: false,
+          slidesPerView: '5',
+          spaceBetween: 20,
+          // pagination: {
+          //     el: $pagin,
+          //     clickable: true
+          // },
+          navigation: {
+            nextEl: $next,
+            prevEl: $prev,
+          },
+          on: {
+            init: function () {
+              $swiper.data('load', true);
+              // mouse over effect
+              $swiper.find('a.vod-item').on('mouseenter', function () {
+                $swiper.closest('.swiper-container').addClass('hover');
+              }).on('mouseleave', function () {
+                $swiper.closest('.swiper-container').removeClass('hover');
+              });
+              // slide length - prev, next show, hide
+              $swiper.each(function () {
+                if ($slideLength <= 5) {
+                  $wrap.find('.swiper-button-prev').hide();
+                  $wrap.find('.swiper-button-next').hide();
+                }
+              });
+            },
+            transitionEnd: function () {
+              $swiperWrap.find('.swiper-slide').removeClass('chg-end');
+              $swiperWrap.find('.swiper-slide-active').addClass('chg-end');
+
+            }
+          }
+        });
+
+      } else if (!!$swiper.closest('.how-to-vod-order-carousel').length) {
+
+        $wrap = $swiper.closest('.how-to-vod-order-carousel');
+        $swiperWrap = $swiper.find('.swiper-wrapper');
+        $swiperSlide = $swiper.find('.swiper-slide');
+        $pagin = $wrap.find('.swiper-paginations');
+        $prev = $wrap.find('.swiper-button-prev');
+        $next = $wrap.find('.swiper-button-next');
+        $slideLength = $swiperSlide.length;
+
+        howToVodOrderSwiper = new Swiper($swiper, {
+          // autoplay: {
+          //     delay: 5000,
+          //     disableOnInteraction: false,
+          // },
+          autoHeight: true,
+          loop: false,
+          watchSlidesVisibility: true,
+          centeredSlides: true,
+          slidesPerView: '1',
+          spaceBetween: 20,
+          pagination: {
+            el: $pagin,
+            clickable: true
+          },
+          navigation: {
+            nextEl: $next,
+            prevEl: $prev,
+          },
+          on: {
+            init: function () {
+              $swiper.data('load', true);
+            },
+            transitionEnd: function () {
+              $swiperWrap.find('.swiper-slide').removeClass('chg-end');
+              $swiperWrap.find('.swiper-slide-active').addClass('chg-end');
+            }
+          }
+        });
+
+      } else if (!!$swiper.closest('.reco-product-carousel').length) {
+
+        $wrap = $swiper.closest('.reco-product-carousel');
+        $swiperWrap = $swiper.find('.swiper-wrapper');
+        $swiperSlide = $swiper.find('.swiper-slide');
+        $pagin = $wrap.find('.swiper-paginations');
+        $prev = $wrap.find('.swiper-button-prev');
+        $next = $wrap.find('.swiper-button-next');
+
+        recoProductSwiper = new Swiper($swiper, {
+          // autoplay: {
+          //     delay: 5000,
+          //     disableOnInteraction: false,
+          // },
+          loop: true,
+          centeredSlides: false,
+          slidesPerView: '2',
+          spaceBetween: 24,
+          // pagination: {
+          //     el: $pagin,
+          //     clickable: true
+          // },
+          navigation: {
+            nextEl: $next,
+            prevEl: $prev,
+          },
+          on: {
+            init: function () {
+              $swiper.data('load', true);
+              console.log()
+
+            },
+            transitionEnd: function () {
+              $swiperWrap.find('.swiper-slide').removeClass('chg-end');
+              $swiperWrap.find('.swiper-slide-active').addClass('chg-end');
+            }
+          }
+        });
+
+      } else if (!!$swiper.closest('.internet-plan-carousel').length) {
+
+        $wrap = $swiper.closest('.internet-plan-carousel');
+        $swiperWrap = $swiper.find('.swiper-wrapper');
+        $swiperSlide = $swiper.find('.swiper-slide');
+        $prev = $wrap.find('.swiper-button-prev');
+        $next = $wrap.find('.swiper-button-next');
+
+        internetPlanSwiper = new Swiper($swiper, {
+          // autoplay: {
+          //     delay: 5000,
+          //     disableOnInteraction: false,
+          // },
+          loop: false,
+          centeredSlides: false,
+          slidesPerView: '3',
+          spaceBetween: 24,
+          // pagination: {
+          //     el: $pagin,
+          //     clickable: true
+          // },
+          navigation: {
+            nextEl: $next,
+            prevEl: $prev,
+          },
+          on: {
+            init: function () {
+              $swiper.data('load', true);
+              console.log()
+
+            },
+            transitionEnd: function () {
+              $swiperWrap.find('.swiper-slide').removeClass('chg-end');
+              $swiperWrap.find('.swiper-slide-active').addClass('chg-end');
+
+            }
+          }
+        });
+
+      } else if (!!$swiper.closest('.popup-cont-carousel').length) {
+
+        $wrap = $swiper.closest('.popup-cont-carousel');
+        $swiperWrap = $swiper.find('.swiper-wrapper');
+        $swiperSlide = $swiper.find('.swiper-slide');
+        $pagin = $wrap.find('.swiper-paginations');
+        $prev = $wrap.find('.swiper-button-prev');
+        $next = $wrap.find('.swiper-button-next');
+
+        popupContSwiper = new Swiper($swiper, {
+          watchOverflow: true,
+          // autoplay: {
+          //     delay: 5000,
+          //     disableOnInteraction: false,
+          // },
+          observer: true,
+          observeParents: true,
+          autoHeight: true,
+          loop: false,
+          centeredSlides: false,
+          slidesPerView: '1',
+          spaceBetween: 24,
+          // pagination: {
+          //     el: $pagin,
+          //     clickable: true
+          // },
+          navigation: {
+            nextEl: $next,
+            prevEl: $prev,
+          },
+          on: {
+            init: function () {
+              $swiper.data('load', true);
+            },
+            transitionEnd: function () {
+              $swiperWrap.find('.swiper-slide').removeClass('chg-end');
+              $swiperWrap.find('.swiper-slide-active').addClass('chg-end');
+            },
+            slideChangeTransitionStart: function () {
+              if ($swiper.find('.swiper-slide-active').hasClass('step')) {
+                $swiper.prev('.step-box-wrap').show();
+                $swiper.closest($wrap).addClass('step-show');
+              } else {
+                $swiper.prev('.step-box-wrap').hide();
+                $swiper.closest($wrap).removeClass('step-show');
+              }
+              if ($swiperWrap.closest('#gCastSwiper').length) {
+                var $stepBox = $('#cont-gCast').find('.step-box'),
+                  $stepBoxLi = $stepBox.find('>li'),
+                  stepIdx = $swiper.find('.swiper-slide-active.step').index() - 2;
+                $stepBoxLi.removeClass('active').eq(stepIdx).addClass('active');
+              } else if ($swiperWrap.closest('#mirrorSwiper').length) {
+                var $stepBox = $('#cont-mirror').find('.step-box'),
+                  $stepBoxLi = $stepBox.find('>li'),
+                  stepIdx = $swiper.find('.swiper-slide-active.step').index() - 2;
+                $stepBoxLi.removeClass('active').eq(stepIdx).addClass('active');
+              } else if ($swiperWrap.closest('#smartIpBackupSwiper').length) {
+                var $stepBox = $('#cont-smartIpBackup').find('.step-box'),
+                  $stepBoxLi = $stepBox.find('>li'),
+                  stepIdx = $swiper.find('.swiper-slide-active.step').index();
+                $stepBoxLi.removeClass('active').eq(stepIdx).addClass('active');
+              } else if ($swiperWrap.closest('#myKtmAppSwiper').length) {
+                var $stepBox = $('#cont-myKtmApp').find('.step-box'),
+                  $stepBoxLi = $stepBox.find('>li'),
+                  stepIdx = $swiper.find('.swiper-slide-active.step').index(),
+                  $myKtmAppTxt = $('#myKtmAppTxt');
+                $stepBoxLi.removeClass('active').eq(stepIdx).addClass('active');
+                if (stepIdx == '0') {
+                  // console.log('0');
+                  $myKtmAppTxt.text('① Apple 앱스토어/Google Play에서 ‘마이 케이티’ 앱 다운로드');
+                } else if (stepIdx == '1') {
+                  // console.log('1');
+                  $myKtmAppTxt.text('② 앱 실행 > 로그인 > SLT LTE 회선 012 시작 번호 선택 > 이용량 조회 (※ 회원 가입 필수)');
+                }
+              } else if ($swiperWrap.closest('#ktHomepageSwiper').length) {
+                var $stepBox = $('#cont-ktHomepage').find('.step-box'),
+                  $stepBoxLi = $stepBox.find('>li'),
+                  stepIdx = $swiper.find('.swiper-slide-active.step').index(),
+                  $myKtmAppTxt = $('#ktHomepageTxt');
+                $stepBoxLi.removeClass('active').eq(stepIdx).addClass('active');
+                if (stepIdx == '0') {
+                  // console.log('0');
+                  $myKtmAppTxt.text('① biz.kt.com 접속');
+                } else if (stepIdx == '1') {
+                  // console.log('1');
+                  $myKtmAppTxt.text('② 로그인 > 상품서비스 > 모바일 > SLT (※ 회원 가입 필수)');
+                }
+              } else if ($swiperWrap.closest('#catchontvMobileServiceSwiper').length) {
+                var $stepBox = $('#cont-catchontvMobileService').find('.step-box'),
+                  $stepBoxLi = $stepBox.find('>li'),
+                  stepIdx = $swiper.find('.swiper-slide-active.step').index();
+                $stepBoxLi.removeClass('active').eq(stepIdx).addClass('active');
+              }
+
+            }
+          }
+        });
+
+      } else if (!!$swiper.closest('.combi-mobile-carousel').length) {
+
+        $wrap = $swiper.closest('.combi-mobile-carousel');
+        $swiperWrap = $swiper.find('.swiper-wrapper');
+        $swiperSlide = $swiper.find('.swiper-slide');
+        $prev = $wrap.find('.swiper-button-prev');
+        $next = $wrap.find('.swiper-button-next');
+
+        combiMobileSwiper = new Swiper($swiper, {
+          watchOverflow: true,
+          // autoplay: {
+          //     delay: 5000,
+          //     disableOnInteraction: false,
+          // },
+          observer: true,
+          observeParents: true,
+          loop: false,
+          centeredSlides: false,
+          slidesPerView: '2',
+          spaceBetween: 24,
+          // pagination: {
+          //     el: $pagin,
+          //     clickable: true
+          // },
+          navigation: {
+            nextEl: $next,
+            prevEl: $prev,
+          },
+          on: {
+            init: function () {
+              $swiper.data('load', true);
+              console.log()
+
+            },
+            transitionEnd: function () {
+              $swiperWrap.find('.swiper-slide').removeClass('chg-end');
+              $swiperWrap.find('.swiper-slide-active').addClass('chg-end');
+
+            }
+          }
+        });
+
+      } else if (!!$swiper.closest('.skyhome-vod-carousel').length) {
+
+        $wrap = $swiper.closest('.skyhome-vod-carousel');
+        $swiperWrap = $swiper.find('.swiper-wrapper');
+        $pagin = $wrap.find('.swiper-paginations');
+        $swiperSlide = $swiper.find('.swiper-slide');
+        $prev = $wrap.find('.swiper-button-prev');
+        $next = $wrap.find('.swiper-button-next');
+
+        skyhomeVodSwiper = new Swiper($swiper, {
+          watchOverflow: true,
+          // autoplay: {
+          //     delay: 5000,
+          //     disableOnInteraction: false,
+          // },
+          loop: false,
+          centeredSlides: false,
+          slidesPerView: '1',
+          spaceBetween: 24,
+          pagination: {
+            el: $pagin,
+            clickable: true
+          },
+          navigation: {
+            nextEl: $next,
+            prevEl: $prev,
+          },
+          on: {
+            init: function () {
+              $swiper.data('load', true);
+              console.log()
+
+            },
+            transitionEnd: function () {
+              $swiperWrap.find('.swiper-slide').removeClass('chg-end');
+              $swiperWrap.find('.swiper-slide-active').addClass('chg-end');
+
+            },
+            slideChange: function (el) {
+              $('.swiper-slide').each(function () {
+                var youtubePlayer = $(this).find('iframe').get(0);
+                if (youtubePlayer) {
+                  youtubePlayer.contentWindow.postMessage('{"event":"command","func":"pauseVideo","args":""}', '*');
+                }
+              });
+            },
+          }
+        });
+
+      } else if (!!$swiper.closest('.home-rental-vis-carousel').length) {
+
+        $wrap = $swiper.closest('.home-rental-vis-carousel');
+        $swiperWrap = $swiper.find('.swiper-wrapper');
+        $pagin = $wrap.find('.swiper-paginations');
+        $swiperSlide = $swiper.find('.swiper-slide');
+        $prev = $wrap.find('.swiper-button-prev');
+        $next = $wrap.find('.swiper-button-next');
+
+        homeRentalVisSwiper = new Swiper($swiper, {
+          watchOverflow: true,
+          effect: 'fade',
+          fadeEffect: {
+            crossFade: true
+          },
+          autoplay: {
+            delay: 5000,
+            disableOnInteraction: false,
+          },
+          loop: true,
+          centeredSlides: true,
+          slidesPerView: '1',
+          spaceBetween: 0,
+          pagination: {
+            el: $pagin,
+            clickable: true
+          },
+          navigation: {
+            nextEl: $next,
+            prevEl: $prev,
+          },
+          on: {
+            init: function () {
+              $swiper.data('load', true);
+            },
+            transitionEnd: function () {
+              $swiperWrap.find('.swiper-slide').removeClass('chg-end');
+              $swiperWrap.find('.swiper-slide-active').addClass('chg-end');
+
+            },
+            slideChange: function (el) {
+              $('.swiper-slide').each(function () {
+                var youtubePlayer = $(this).find('iframe').get(0);
+                if (youtubePlayer) {
+                  youtubePlayer.contentWindow.postMessage('{"event":"command","func":"pauseVideo","args":""}', '*');
+                }
+              });
+            },
+          }
+        });
+
+      } else if (!!$swiper.closest('.pay-channel-tab-carousel').length) {
+
+        $wrap = $swiper.closest('.pay-channel-tab-carousel');
+        $swiperWrap = $swiper.find('.swiper-wrapper');
+        $pagin = $wrap.find('.swiper-paginations');
+        $swiperSlide = $swiper.find('.swiper-slide');
+        $prev = $wrap.find('.swiper-button-prev');
+        $next = $wrap.find('.swiper-button-next');
+
+        inpid = cariuselID + '_inp';
+        if (!$('#' + inpid).length) {
+          $swiper.append('<input type="hidden" id="' + inpid + '" >');
+        }
+
+        payChannelTabSwiper = new Swiper($swiper, {
+          watchOverflow: true,
+          // effect : 'fade',
+          // fadeEffect: {
+          //     crossFade: true
+          // },
+          // autoplay: {
+          //     delay: 5000,
+          //     disableOnInteraction: false,
+          // },
+          loop: false,
+          centeredSlides: false,
+          slidesPerView: '5',
+          spaceBetween: 0,
+          // pagination: {
+          //     el: $pagin,
+          //     clickable: true
+          // },
+          navigation: {
+            nextEl: $next,
+            prevEl: $prev,
+          },
+          on: {
+            init: function () {
+              $swiper.data('load', true);
+            },
+            transitionEnd: function () {
+              $swiperWrap.find('.swiper-slide').removeClass('chg-end');
+              $swiperWrap.find('.swiper-slide-active').addClass('chg-end');
+
+              var save_id = $swiper.attr('id'),
+                save_n = payChannelTabSwiper.realIndex;
+
+              sessionStorage.setItem($plugins.href, JSON.stringify({ 'moveId': save_id, 'swipeIndex': save_n }));
+            },
+          }
+        });
+
+        $('#' + inpid).on('propertychange change keyup paste input', function () {
+          payChannelTabSwiper.slideTo($(this).val());
+        });
+
+        payChannelTabSwiper.slideTo($swiper.find('li.active').index());
+
+      } else if (!!$swiper.closest('.reco-pay-channel-carousel').length) {
+
+        $wrap = $swiper.closest('.reco-pay-channel-carousel');
+        $swiperWrap = $swiper.find('.swiper-wrapper');
+        $pagin = $wrap.find('.swiper-paginations');
+        $swiperSlide = $swiper.find('.swiper-slide');
+        $prev = $wrap.find('.swiper-button-prev');
+        $next = $wrap.find('.swiper-button-next');
+
+        recoPayChannelSwiper = new Swiper($swiper, {
+          watchOverflow: true,
+          slidesPerView: 'auto',
+          spaceBetween: 24,
+          scrollbar: {
+            el: ".swiper-scrollbar"
+          },
+          on: {
+            init: function () {
+              $swiper.data('load', true);
+              console.log()
+
+            },
+            transitionEnd: function () {
+              $swiperWrap.find('.swiper-slide').removeClass('chg-end');
+              $swiperWrap.find('.swiper-slide-active').addClass('chg-end');
+
+            },
+            slideChange: function (el) {
+              $('.swiper-slide').each(function () {
+                var youtubePlayer = $(this).find('iframe').get(0);
+                if (youtubePlayer) {
+                  youtubePlayer.contentWindow.postMessage('{"event":"command","func":"pauseVideo","args":""}', '*');
+                }
+              });
+            },
+          }
+        });
+
+      }
+    },
+
+    carouselTo: function (opt) {
+      $('#' + opt.id + '_inp').val(opt.current).trigger("input");
+    },
+
+
+    noticeTicker: function () {
+      try {
+        $('#noticeticker').Vnewsticker({
+          speed: 500,         //스크롤 스피드
+          pause: 5000,        //잠시 대기 시간
+          mousePause: true,   //마우스 오버시 일시정지(true=일시정지)
+          showItems: 1,       //스크롤 목록 갯수 지정(1=한줄만 보임)
+          direction: "up"    //left=옆으로스크롤, up=위로스크롤, 공란=아래로 스크롤
+        });
+      } catch (error) {
+        console.log('[Error] noticeTicker', error)
+      }
+
+    },
+    termsList: function () {
+      $(doc).on('click', '.ui-terms-list', function (e) {
+        var $popTermsList = $('#popTermsList'),
+          $popktFamilyList = $('#popktFamilyList');
+        e.preventDefault();
+        if (!$popTermsList.is(':visible')) {
+          $popktFamilyList.hide();
+          $popTermsList.show();
+        } else {
+          $popTermsList.hide();
+        }
+      });
+    },
+    openLayerPopup: function () {
+      $(doc).on('click', '.ui-open-layer-popup', function (e) {
+        e.preventDefault();
+        var $this = $(this),
+          $winH = $(window).height(),
+          $target = $this.attr('href'),
+          $targetCon = $($target).find('.lp-dimm-wrap');
+
+        setTimeout(function () {
+          e.preventDefault();
+          $('body').addClass('open-dimm');
+          $($target).show();
+
+          var $targetConH = $targetCon.height();
+          if ($winH <= $targetConH) {
+            $targetCon.css({
+              top: '50px',
+              marginBottom: '50px',
+              transform: 'translate(-50%, 0%)'
+            });
+          }
+        }, 200);
+      });
+      $(win).resize(function () {
+        $plugins.common.lpResize();
+      });
+
+      $plugins.common.lpClose();
+    },
+    lpResize: function () {
+      if ($('.lp-dimm').is(':visible')) {
+        var $this = $(this),
+          $winH = $(window).height(),
+          $target = $('.lp-dimm:visible'),
+          $targetCon = $($target).find('.lp-dimm-wrap'),
+          $targetConH = $targetCon.height();
+
+        if ($winH <= $targetConH) {
+          $targetCon.css({
+            top: '50px',
+            marginBottom: '50px',
+            transform: 'translate(-50%, 0%)'
+          });
+        } else {
+          $targetCon.css({
+            top: '50%',
+            marginBottom: '0',
+            transform: 'translate(-50%, -50%)'
+          });
+        }
+      }
+    },
+    ktfamilyList: function () {
+      $(doc).on('click', '.ui-ktfamily-list', function (e) {
+        var $popTermsList = $('#popTermsList'),
+          $popktFamilyList = $('#popktFamilyList');
+        e.preventDefault();
+        // if ( !$popktFamilyList.is(':visible') ){
+        //     $popTermsList.hide();
+        //     $popktFamilyList.show();
+        // } else {
+        //     $popktFamilyList.hide();
+        // }
+
+        $('body').addClass('open-dimm');
+        $popktFamilyList.show();
+
+        if (!$popktFamilyList.find('.lp-dimm-wrap').length) {
+          $plugins.uiAjax({
+            id: 'popktFamilyList',
+            url: '../component/lp-ktfamily.html'
+          });
+        }
+      });
+
+      $plugins.common.lpClose();
+
+    },
+    lpClose: function () {
+      $(doc).mouseup(function (e) {
+        var LayerPopup = $('.lp-dimm');
+        if (LayerPopup.has(e.target).length === 0) {
+          $('body').removeClass('open-dimm');
+          $('.lp-dimm').hide();
+        }
+      });
+
+      $(doc).on('click', '.ui-lp-close', function (e) {
+        e.preventDefault();
+        $('body').removeClass('open-dimm');
+        $('.lp-dimm').hide();
+      });
+    },
+    simpleJoin: function () {
+
+      var $docH = $(document).height(),
+        $winH = $(window).height(),
+        $footerH = $('#sec-footer').height(),
+        $simpleJoin = $('#sec-simplejoin');
+
+      if ($simpleJoin.length) {
+        if ($(window).scrollTop() + $(window).innerHeight() <= $('#sec-footer').offset().top) {
+          $simpleJoin.addClass('fixed');
+        } else {
+          $simpleJoin.removeClass('fixed');
+        }
+
+        $(window).scroll(function () {
+          if ($(window).scrollTop() + $(window).innerHeight() <= $('#sec-footer').offset().top) {
+            $simpleJoin.addClass('fixed');
+          } else {
+            $simpleJoin.removeClass('fixed');
+          }
+        });
+
+        $(window).resize(function () {
+          if ($(window).scrollTop() + $(window).innerHeight() <= $('#sec-footer').offset().top) {
+            $simpleJoin.addClass('fixed');
+          } else {
+            $simpleJoin.removeClass('fixed');
+          }
+        });
+      }
+
+    },
+    subContentsHeight: function () {
+      var $subCont = $('#sub-contents'),
+        $footerH = $('#footer').outerHeight(true);
+
+      if ($subCont.length) {
+        $subCont.css({
+          'minHeight': 'calc(100vh - ' + $footerH + 'px)'
+          // 'minHeight': `calc(100vh - ${$footerH}px)`
+        });
+      }
+    },
+    stickyBanner: function () {
+      var $stickyMenu = $('#stickyMenu'),
+        $stickyMenuBtn = $stickyMenu.find('button'),
+        $goTop = $('#goTop');
+
+      $goTop.on('click', function (e) {
+        $('html, body').animate({ scrollTop: 0 }, 100);
+        e.preventDefault();
+      });
+
+      $stickyMenuBtn.on('click', function () {
+        console.log('$stickyMenuShow');
+        $stickyMenu.addClass('open');
+        // $(this).hide();
+        // $stickyMenuList.show();
+      });
+
+      if ($(window).scrollTop() < 800) {
+        $goTop.stop().hide();
+      } else {
+        $goTop.stop().fadeIn();
+      }
+
+      $(window).scroll(function () {
+        $stickyMenu.removeClass('open');
+        if ($(window).scrollTop() < 800) {
+          $goTop.stop().fadeOut();
+        } else {
+          $goTop.stop().fadeIn();
+        }
+      });
+
+    },
+
+    mCustomScrollBar: function () {
+      $(window).on("load", function () {
+        if ($(".mcsb").length) {
+          $(".mcsb").mCustomScrollbar({
+            theme: "skylife"
+          });
+        }
+      });
+    },
+
+    createUiInputClear: function () {
+      var $inp = $('.ui-inpcancel');
+
+      $inp.each(function (i) {
+        var $this = $(this),
+          inpId = $this.attr('id') !== undefined ? $this.attr('id') + '_cancel' : false,
+          html_cancel = '';
+
+        if ($this.val() === '') {
+          $this.next('.ui-btn-cancel').remove()
+        } else if ($this.next('.ui-btn-cancel').length === 0) {
+
+          html_cancel += '<button type="button" class="ui-btn-cancel"';
+          !!inpId ? html_cancel += ' id="' + inpId + '"' : '';
+          html_cancel += '><span>clear input</span></button>';
+          $this.after(html_cancel);
+          html_cancel = '';
+        }
+      });
+
+      $(doc).off('keyup.inpcancel').on('keyup.inpcancel', '.ui-inpcancel', function () {
+        var _$this = $(this),
+          _inpId = _$this.attr('id') !== undefined ? _$this.attr('id') + '_cancel' : false,
+          _html_cancel = '';
+        ;
+
+        if (_$this.val() === '') {
+          _$this.next('.ui-btn-cancel').remove();
+        } else if (!_$this.next('.ui-btn-cancel').length) {
+
+          _html_cancel += '<button type="button" class="ui-btn-cancel"';
+          !!_inpId ? _html_cancel += ' id="' + _inpId + '"' : '';
+          _html_cancel += '><span class="hide">clear input</span></button>';
+          _$this.after(_html_cancel);
+          _html_cancel = '';
+        }
+      });
+
+      $(doc).off('click.inpcancel').on('click.inpcancel', '.ui-btn-cancel', function () {
+        $(this).prev().val('').focus();
+        $(this).remove();
+      });
+    },
+
+    accordion: function () {
+      var $accordion = $('.ui-accordion'),
+        $accordionT = $accordion.find('>dt>a'),
+        $accordionB = $accordion.find('>dt>.ui-accordion-btn'),
+        $accordionC = $accordion.find('>dd');
+
+      if ($accordion.length) {
+        if ($accordion.hasClass('accordion-type-4')) {
+          $('.ui-accordion>dt>a, .ui-accordion>dt>.ui-accordion-btn').on('click', function (e) {
+            e.preventDefault();
+            if (!$(this).closest('dl').hasClass('open')) {
+              $(this).closest('dl').addClass('open');
+              $(this).parent('dt').next('dd').stop().slideDown(400);
+            } else {
+              $(this).closest('dl').removeClass('open');
+              $(this).parent('dt').next('dd').stop().slideUp(200);
+            }
+          });
+        } else if ($accordion.hasClass('accordion-type-3')) {
+          if ($accordionT && $accordionT.length !== 0) {
+            var chkBindingEvent = $._data($accordionT[0], 'events')
+            // $accordionT 중복 이벤트 바인딩 방지
+            if (!chkBindingEvent || (chkBindingEvent && !chkBindingEvent.click)) {
+              $accordionT.on('click', function (e) {
+                e.preventDefault();
+                if (!$(this).closest('dl').hasClass('open')) {
+                  $(this).closest('dl').addClass('open');
+                  $(this).parent('dt').next('dd').stop().slideDown(400);
+                } else {
+                  $(this).closest('dl').removeClass('open');
+                  $(this).parent('dt').next('dd').stop().slideUp(200);
+                }
+              });
+            }
+          }
+        } else {
+          $accordionT.on('click', function (e) {
+            e.preventDefault();
+            if (!$(this).parent('dt').hasClass('open')) {
+              $(this).parent('dt').addClass('open');
+              $(this).parent('dt').next('dd').stop().slideDown(400);
+            } else {
+              $(this).parent('dt').removeClass('open');
+              $(this).parent('dt').next('dd').stop().slideUp(200);
+            }
+
+            setTimeout(function () {
+              $plugins.common.simpleJoin();
+            }, 250);
+
+            // 다른유료채널보기
+            if ($(this).closest('#popPayChannelApply').length) {
+              setTimeout(function () {
+                $plugins.common.lpResize();
+              }, 400);
+            }
+
+          });
+        }
+      }
+    },
+
+    myPlanPdItemList: function () {
+      var $myPlanList = $('.my-plan-list'),
+        $myPlanListT = $myPlanList.find('.ui-my-pd-select-base'),
+        $myPlanListC = $myPlanList.find('.my-plan-list-all'),
+        $myPlanListItem = $myPlanListC.find('.ui-my-pd-select-item');
+
+      if ($myPlanList.length) {
+        if ($myPlanListT && $myPlanListT.length !== 0) {
+          var chkBindingEvent = $._data($myPlanListT[0], 'events')
+          // $myPlanListT 중복 이벤트 바인딩 방지
+          if (!chkBindingEvent || (chkBindingEvent && !chkBindingEvent.click)) {
+            $myPlanListT.on('click', function (e) {
+              e.preventDefault();
+              console.log('click', $myPlanList.hasClass('open'))
+              if (!$myPlanList.hasClass('open')) {
+                $myPlanList.addClass('open');
+                $myPlanListC.stop().slideDown(400);
+              } else {
+                $myPlanList.removeClass('open');
+                $myPlanListC.stop().slideUp(200);
+              }
+            });
+          }
+        }
+
+
+        $myPlanListItem.on('click', function (e) {
+          e.preventDefault();
+          var $baseTit = $myPlanListT.find('.tit'),
+            $baseStit = $myPlanListT.find('.stit').eq(1),
+            $baseStit2 = $myPlanListT.find('.stit.pause'),
+            $basetxt = $myPlanListT.find('.txt'),
+            $itemStit2 = $(this).find('.stit.pause');
+
+          $myPlanListItem.parent('li').removeClass('selected');
+          $(this).parent('li').addClass('selected');
+          $baseTit.text($(this).find('.tit').text());
+          $baseStit.text($(this).find('.stit').eq(1).text());
+          if ($itemStit2.length) {
+            console.log('y')
+            console.log($baseStit2)
+            console.log($itemStit2)
+            $baseStit2.show();
+            $baseStit2.text($(this).find('.stit.pause').text());
+          } else {
+            console.log('n')
+            console.log($myPlanListT.find('.stit.pasue'))
+            $baseStit2.hide();
+          }
+          $basetxt.text($(this).find('.txt').text());
+          $myPlanList.delay(500).removeClass('open');
+          $myPlanListC.stop().delay(500).slideUp(200);
+        });
+      }
+    },
+
+    stepBoxPadding: function () {
+      var $stepBboxType1 = $('.step-box-type-1'),
+        $stepBbox1LiF = $stepBboxType1.find('li:first-child>p'),
+        $stepBbox1LiL = $stepBboxType1.find('li:last-child>p'),
+        $stepBboxType2 = $('.step-box-type-2'),
+        $stepBbox2LiF = $stepBboxType2.find('li:first-child>p'),
+        $stepBbox2LiL = $stepBboxType2.find('li:last-child>p');
+      if ($stepBboxType1.length) {
+        $stepBboxType1.css({
+          paddingRight: Math.floor(71 + $stepBbox1LiL.width() / 2),
+          paddingLeft: Math.floor(71 + $stepBbox1LiF.width() / 2)
+        });
+      } else if ($stepBboxType2.length) {
+        $stepBboxType2.css({
+          paddingRight: Math.floor(41 + $stepBbox2LiL.width() / 2),
+          paddingLeft: Math.floor(41 + $stepBbox2LiF.width() / 2)
+        });
+      }
+    },
+
+    tabOver: function (opt) {
+      var $tabType = opt,
+        $tab = $('[class^=tab-type-]'),
+        $tabLi = $tab.find('> li'),
+        $tabLiActive = $tab.find('> li.active');
+
+      if ($tab.length) {
+        if ($tabType == 'tabType1') { // 이용약관 탭
+          // active sub 존재시 최초 1회 실행
+          if ($tabLi.hasClass('active') && $tabLi.find('.sub').length) {
+            $tabLiActive.find('.sub').stop().slideDown(400).delay(400).slideUp(200);
+          }
+
+          $tab.on('mouseenter focus', '>li', function () {
+            $(this).find('.sub').stop().slideDown();
+          });
+          $tabLi.on('mouseleave', function () {
+            $(this).find('.sub').stop().slideUp(200);
+          });
+        }
+      }
+    },
+
+    tabFilter: function () {
+      var $tabWrap = $('[class^=tabfilter-type-]'),
+        $tab = $tabWrap.find('.tabfilter-tab'),
+        $tabLi = $tab.find('> li'),
+        $tabLiF = $tabLi.parent('ul').find('li:first-child');
+
+      if ($tab.length) {
+        $tabLiF.addClass('active');
+        $tabLi.on('click', '> a', function (e) {
+          e.preventDefault();
+          var $href = $(this).data('filter'),
+            $tabCont = $(this).closest('[class^=tabcont-type-]').next('div').find('>div'),
+            $tabLi = $(this).closest('li').siblings();
+
+          $tabLi.removeClass('active');
+          $(this).parent('li').addClass('active');
+          if ($href == 'show-all') {
+            $('.card').show();
+          } else {
+            $('.card').hide();
+            $('.' + $href).show();
+          }
+        });
+      }
+    },
+
+    tabClick: function () {
+      var $tabType,
+        $tabWrap = $('[class^=tabcont-type-]'),
+        $tab = $tabWrap.find('.tabcont-tab'),
+        $tabLi = $tab.find('> li'),
+        $tabLiF = $tabLi.parent('ul').find('li:first-child'),
+        $tabContw = $tabWrap.next('div'),
+        $tabContF = $tabContw.find('>:first-child'),
+        $tabCont = $tabContw.find('>div');
+
+      if ($tab.length) {
+        $tabLiF.addClass('active');
+        $tabContF.show();
+        $tabLi.on('click', '> a', function (e) {
+          e.preventDefault();
+          var $href = $(this).attr('href'),
+            $tabCont = $(this).closest('[class^=tabcont-type-]').next('div').find('>div'),
+            $tabLi = $(this).closest('li').siblings();
+
+          $tabLi.removeClass('active');
+          $(this).parent('li').addClass('active');
+          if ($href == '#show-all') {
+            $tabCont.show();
+          } else {
+            $tabCont.hide();
+            $($href).show();
+          }
+        });
+      }
+    },
+    showDetail: function () {
+      $(doc).on('click', '.ui-btn-shortly', function (e) {
+        e.preventDefault();
+        $(this).closest('.service-price-wrap').removeClass('show-detail');
+      });
+      $(doc).on('click', '.ui-btn-detail', function (e) {
+        e.preventDefault();
+        $(this).closest('.service-price-wrap').addClass('show-detail');
+      });
+    },
+
+    tblHover: function () {
+      if ($('.tbl-hover').length) {
+        $('.tbl-hover th, .tbl-hover td').hover(function () {
+          var index = $(this).index();
+          $(this).closest('.tbl-hover').find('table th, table td').filter(":nth-child(" + (index + 1) + ")").addClass("hover");
+        }, function () {
+          $(".tbl-hover th, .tbl-hover td").removeClass("hover");
+        });
+      }
+    },
+
+    // added by dh
+    selectric: function () {
+      $('select').selectric();
+    },
+
+    moGnb: function (opt) {
+      console.log('moGnb')
+      var $btnAllmenu = $('.btn-allmenu'),
+        $gnb = $('#gnb'),
+        $dep1List = $gnb.find('.dep1-list');
+
+      console.log('$btnAllmenu.length', $btnAllmenu.length)
+      if ($btnAllmenu.length) {
+        $btnAllmenu.on('click', function (e) {
+          e.preventDefault();
+          if (!$('html').hasClass('gnb-open')) {
+
+            $('html').addClass('gnb-open');
+            $gnb.show();
+
+            $dep1List.find('>li').eq(0).addClass('active');
+            $dep1List.each(function (index) {
+              var $this = $(this),
+                $dep1Active = $('.active').index(),
+                $depSubListWrap = $gnb.find('.dep-sub-list-wrap');
+
+              $depSubListWrap.eq($dep1Active).show();
+            });
+
+            // } else {
+            //     $('html').removeClass('gnb-open');
+            //     $gnb.hide();
+          }
+        });
+
+        $plugins.common.gnbAct();
+
+      }
+    },
+
+    gnbAct: function () {
+      var $gnb = $('#gnb'),
+        $gnbClose = $gnb.find('.btn-gnb-close'),
+        $dep1 = $gnb.find('.dep1'),
+        $depSubListWrap = $gnb.find('.dep-sub-list-wrap'),
+        $li = $depSubListWrap.find('li'),
+        $depSubListItem = $depSubListWrap.find('ul');
+
+      $gnbClose.on('click', function (e) {
+        e.preventDefault();
+        $('html').removeClass('gnb-open');
+        $plugins.common.gnbSubReset();
+        $gnb.hide();
+      });
+
+      $li.each(function () {
+        if ($(this).hasClass('active')) {
+          $(this).addClass('open');
+        }
+      });
+
+
+      if ($depSubListItem.find('ul').length) {
+        $depSubListItem.find('a + ul').before('<button class="btn-folding"><span class="hide">펼치기</span></button>')
+      }
+
+      $dep1.on('click', function (e) {
+        if (!$(this).hasClass('setting')) {
+          e.preventDefault();
+          var $this = $(this),
+            $depIdx = $dep1.index(this);
+          $dep1.parent('li').removeClass('active');
+          $this.parent('li').addClass('active');
+
+          $depSubListWrap.hide().eq($depIdx).show();
+        }
+      });
+
+      $depSubListWrap.on('click', '.btn-folding', function (e) {
+        console.log('btn-folding')
+        e.preventDefault();
+        var $this = $(this),
+          $depSubListWrap = $gnb.find('.dep-sub-list-wrap'),
+          $depSubItem = $depSubListWrap.find('li');
+
+        if (!$this.parent('li').hasClass('active')) {
+          if ($this.prev('.dep2').length) {
+            $depSubItem.removeClass('active');
+          }
+          $this.find('span').text('닫기');
+          $this.parent('li').addClass('active');
+        } else {
+          $this.find('span').text('펼치기');
+          $this.parent('li').removeClass('active');
+          $this.siblings('ul').find('li').removeClass('active');
+        }
+      });
+
+    },
+
+    gnbSubReset: function () {
+      var $gnb = $('#gnb'),
+        $dep1ListItem = $gnb.find('.dep1-list>li'),
+        $depSubListWrap = $gnb.find('.dep-sub-list-wrap'),
+        $depSubItem = $depSubListWrap.find('li');
+
+      $dep1ListItem.removeClass('active');
+      $depSubItem.removeClass('active');
+      $depSubListWrap.hide();
+    },
+
+    // 추가
+    faqWrapList: function () {
+      var $faqWrap = $(".faq_wrap"),
+        $faqWrapDt = $faqWrap.find('dt');
+      $faqWrapDt.on('click', function () {
+        $(this).closest('dl').toggleClass('active').siblings().removeClass('active');
+        $(this).next('dd').stop().slideToggle(200).closest('dl').siblings().find('dd').stop().slideUp(200);
+
+      });
+    },
+
+    selfStepList: function () {
+      var $selfStepList = $(".self_step_list");
+      $selfStepList.find("input[type='radio']").on('click', function () {
+        var $thisStepBox = $(this).closest('.step_box');
+        $thisStepBox.removeClass('active choice');
+        $thisStepBox.next().addClass('active');
+        $thisStepBox.addClass('end')
+        setTimeout(function () {
+          $thisStepBox.next().addClass('choice')
+        }, 400);
+        if ($thisStepBox.hasClass('end')) {
+          // $thisStepBox.find("input[type='radio']").attr('disabled', 'false');
+          $thisStepBox.find("input[type='radio']").removeAttr('disabled');
+        }
+      })
+    },
+
+    slideTab: function () {
+      var $slideTabWrap = $(".slider_tab_wrap");
+      var swiper = new Swiper($slideTabWrap.find('.swiper'), {
+        navigation: {
+          nextEl: $slideTabWrap.find('.next'),
+          prevEl: $slideTabWrap.find('.prev'),
+        },
+        slidesPerView: 'auto',
+        slideToClickedSlide: true,
+        loop: true,
+        loopAdditionalSlides: 0,
+        centeredSlides: true,
+        simulateTouch: true,
+        on: {
+          slideChange: function () {
+            window.$nuxt.$store.dispatch('product/setScheduleCtgrIdx', this.realIndex)
+          }
+        }
+      });
+
+
+    },
+
+    allBtnClick: function () {
+      var $slideTabWrap = $(".slider_tab_wrap");
+      $slideTabWrap.find('.all_btn').on('click', function () {
+        $("html,body").toggleClass('overflow');
+        $slideTabWrap.toggleClass('on');
+        $(this).toggleClass('on');
+      });
+    },
+
+    kidsSlider: function () {
+      var $kidsSlider = $(".kids_slide");
+      $kidsSlider.find('.swiper').each(function (idx, item) {
+        var $thisParent = $(item).closest($kidsSlider);
+        var swiper = new Swiper(item, {
+          spaceBetween: 60,
+          navigation: {
+            nextEl: $thisParent.find('.next'),
+            prevEl: $thisParent.find('.prev'),
+          },
+          pagination: {
+            el: $thisParent.find('.swiper-pagination'),
+            type: "progressbar",
+          },
+          observer: true,
+          observeParents: true,
+        });
+      })
+
+    },
+
+    tableList: function () {
+      var $tableList = $(".table_list"),
+        $tableListDt = $tableList.find('tr.dt');
+      $tableListDt.on('click', function () {
+        console.log('asd')
+        $(this).closest('tr').toggleClass('active').siblings().removeClass('active');
+        $(this).next('tr.dd').toggle().closest('tr').siblings().find('tr.dd').hide();
+
+      });
+    },
+
+    // 2021-09-30 추가
+    headerSearch: function () {
+      $('#header a.search').off().on('click', function () {
+        console.log('search clicked!')
+        $("#header .search_box").slideToggle(200, function() {
+          const inputElement = $("#header .search_box .input_box input");
+          if (document.activeElement !== inputElement[0]) {
+            inputElement[0].focus()
+          }
+        });
+      });
+    },
+
+    dateSelect: function (target) {
+      $(target).find('ul').slideToggle(200)
+    },
+
+    agreeTab: function () {
+      const $agreeTab = $("dl.agree_tab dt").find('a')
+      var chkBindingEvent = $._data($agreeTab[0], 'events')
+      // $agreeTab 중복 이벤트 바인딩 방지
+      if (!chkBindingEvent || (chkBindingEvent && !chkBindingEvent.click)) {
+        $("dl.agree_tab dt").find('a').on('click', function () {
+          $(this).toggleClass('onAr')
+          $(this).closest('dt').next('dd').slideToggle(200)
+        });
+      }
+    },
+
+    attentionTabBtn: function () {
+      $(".attention_tab ul li").on('click', function () {
+        $(this).addClass('active').siblings().removeClass('active')
+      });
+    },
+
+    pairingWrapTab: function () {
+      $(".pairing_wrap .pairing_head").on('click', function () {
+        $(this).closest('.pairing_wrap').find('.pairing_body').stop().slideToggle(300)
+      });
+    },
+
+    pairingWrapSlider: function () {
+      var $sliderWrap = $(".pairing_slider_wrap");
+      var $slider = $sliderWrap.find('.slider');
+      var $sliderPrev = $('.pairing_slider_prev');
+      var $sliderNext = $('.pairing_slider_next');
+      var $sliderPager = $('.pairing_slider_pagination');
+
+      var bullet = [
+        '2021년 07월 11일 (일)',
+        '2021년 07월 12일 (월)',
+        '2021년 07월 13일 (화)',
+        '2021년 07월 14일 (수)',
+        '2021년 07월 15일 (목)',
+        '2021년 07월 16일 (금)',
+        '2021년 07월 17일 (토)',
+      ];
+      var swiper = new Swiper($slider, {
+        navigation: {
+          nextEl: $sliderNext,
+          prevEl: $sliderPrev,
+        },
+        pagination: {
+          el: $sliderPager,
+          bulletClass: 'pager',
+          bulletActiveClass: 'active',
+          clickable: true,
+          renderBullet: function (index, className) {
+            return '<li class="' + className + '"><a href="javascript:;">' + (bullet[index]) + '</a></li>';
+          }
+        },
+        // simulateTouch:false, // 드래그 막기
+        observer: true,
+        observeParents: true,
+
+      }).on('slideChange', function () {
+        var dateText = $sliderPager.find('li').eq(swiper.realIndex).text();
+        $sliderPager.closest('.date').find('span').text(dateText)
+      });
+    },
+
+    programDrag: function () {
+      var $dragWrap = $(".program-table .scroll_wrap");
+      var dragFlag = false;
+      var x = 0;
+      var preX = 0;
+
+      $dragWrap.on("mousedown", function (e) {
+        dragFlag = true;
+        var obj = $(this);
+        x = obj.scrollLeft();
+        y = obj.scrollTop();
+        pre_x = e.screenX;
+        pre_y = e.screenY;
+      });
+      $dragWrap.on("mousemove", function (e) {
+        if (dragFlag) {
+          // console.log(pre_x)
+          var obj = $(this);
+          obj.scrollLeft(x - e.screenX + pre_x);
+          obj.scrollTop(y - e.screenY + pre_y);
+
+          return false;
+        }
+      });
+      $dragWrap.on("mouseup", function (e) {
+        dragFlag = false;
+      });
+    },
+
+    // added by dh
+    mainScript: function () {
+      $('.ui-btn-maintop-close').on('click', function (e) {
+        e.preventDefault();
+        $('#mainTopSH').animate({
+          'top': '-101px'
+        }, 400, function () {
+          $(this).remove()
+        });
+        $('#header').animate({
+          'top': '0'
+        }, 400);
+        $('#main-contents').animate({
+          'paddingTop': '100px'
+        }, 400);
+        setCookie("mainTopSH", "done", 1);
+        $('body').removeClass('maintop-show');
+
+        setCookie("mainTopSHAppDown", "done", 1); // skylife 고객센터 app 출시
+      });
+
+      function setCookie(name, value, expiredays) {
+        var todayDate = new Date();
+        todayDate.setDate(todayDate.getDate() + expiredays);
+        document.cookie = name + "=" + escape(value) + "; path=/; expires=" + todayDate.toGMTString() + ";"
+      }
+
+      cookiedata = document.cookie;
+      // 상단 띠배너 - skylife 고객센터 app 출시
+      if (!cookiedata.includes("mainTopSHAppDown=done")) {
+        $('body').addClass('maintop-show');
+        $('#mainTopSH').show();
+      } else {
+        $('#mainTopSH').remove();
+        $('body').removeClass('maintop-show');
+      }
+      // 상단 띠배너 - 브라우저 안내
+      // if (!cookiedata.includes("mainTopSH=done")) {
+      //   $('body').addClass('maintop-show');
+      //   $('#mainTopSH').show();
+      // } else {
+      //   $('#mainTopSH').remove();
+      //   $('body').removeClass('maintop-show');
+      // }
+      // 팝업
+      if (!cookiedata.includes("popMain=done")) {
+        $('#popMain').show();
+      } else {
+        $('#popMain').hide();
+      }
+      $("#popMain .ui-lp-close").on('click', function (e) {
+        if ($("#chk-today-close").is(":checked")) {
+          setCookie("popMain", "done", 1);
+        }
+      });
+    },
+
+    // mainSecActive: function(){
+    //     $plugins.sectionActive();
+    // }
+
+    mobileAdditional: function () {
+      $(document).ready(function () {
+        var $totalCnt = $('#totalCnt'),
+          $aaTab = $('.add-application-tab'),
+          $isFree = $('#chk-isfree'),
+          $isPaid = $('#chk-ispaid'),
+          $aacw = $('.add-application-contents-wrap:visible'),
+          $aai = $aacw.find('.add-application-item')
+
+        var arrangeData = function () {
+          if ($isFree.is(':checked') === true) {
+            $aacw.find('.is-free').show()
+          } else {
+            $aacw.find('.is-free').hide()
+          }
+          if ($isPaid.is(':checked') === true) {
+            $aacw.find('.is-paid').show()
+          } else {
+            $aacw.find('.is-paid').hide()
+          }
+          if (
+            $isFree.is(':checked') === true &&
+            $isPaid.is(':checked') === true
+          ) {
+            $aacw.find('.is-paid, .is-free').show()
+          }
+
+          if (
+            $isFree.is(':checked') === false &&
+            $isPaid.is(':checked') === false
+          ) {
+            $aacw.find('.is-paid, .is-free').show()
+          }
+          visCount()
+        }
+        $aaTab.on('click', arrangeData)
+
+        $('#chk-isfree, #chk-ispaid').on('click', arrangeData)
+
+        function visCount() {
+          var $visCnt = $('.add-application-item:visible').length
+          $totalCnt.text($visCnt)
+        }
+      })
+    },
+
+    // added by dh
+    lpManualClose: function () {
+      $('body').removeClass('open-dimm');
+      $('.lp-dimm').hide();
+    },
+
+    noticeCollapse: function () {
+
+    },
+
+    footerScript: function () {
+
+    },
+
+    choiceTab: function () {
+
+    },
+
+    myRequestCancellation: function () {
+
+    }
+  }
+
+})(jQuery, window, document);
